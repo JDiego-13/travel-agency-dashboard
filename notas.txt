@@ -1,1 +1,4 @@
 - Falta generar una licencia min. 18:05 del video
+- Si hay problema en la API checar minuto 2:06:00
+- Puede que falte instalar algo en el minuto 2:18
+    (npx react-router reveal)
