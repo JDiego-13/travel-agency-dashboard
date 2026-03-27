@@ -8,18 +8,27 @@ export async function clientLoader() {
     try {
         const user = await account.get();
 
-        if(!user.$id) return redirect('/sign-in');
+        if (!user?.$id) {
+            return redirect('/sign-in');
+        }
 
         const existingUser = await getExistingUser(user.$id);
 
-        if(existingUser?.status === 'user') {
+        if (existingUser?.status === 'user') {
             return redirect('/');
         }
 
-        return existingUser?.$id ? existingUser : await storeUserData();
-    } catch (e) {
-        console.log('Error in clientLoader', e)
-        return redirect('/sign-in')
+        return existingUser?.$id
+            ? existingUser
+            : await storeUserData();
+
+    } catch (e: any) {
+        if (e?.code === 401) {
+            return redirect('/sign-in'); 
+        }
+
+        console.log('Error in clientLoader', e);
+        return redirect('/sign-in');
     }
 }
 

@@ -1,15 +1,21 @@
 import {Link, redirect } from "react-router";
 import { ButtonComponent } from "@syncfusion/ej2-react-buttons";
-import { loginWidthGoogle } from "~/appwrite/auth";
+import { loginWithGoogle } from "~/appwrite/auth";
 import {account} from "~/appwrite/client";
+
+export async function loader() {
+    return null;
+}
 
 export async function clientLoader() {
     try {
         const user = await account.get();
-
-        if(user.$id) return redirect('/');
-    } catch (e) {
-        console.log('Error fetching user', e)
+        if (user?.$id) return redirect('/');
+    } catch (e: any) {
+        if (e?.code === 401) {
+            return null;
+        }
+        console.log('Error fetching user', e);
     }
 }
 
@@ -39,7 +45,7 @@ const SigIn = () => {
                     type="button"
                     iconCss="e-search-icon"
                     className="button-class !h-11 !w-full"
-                    onClick={loginWidthGoogle}
+                    onClick={loginWithGoogle}
                 >
                     <img 
                         src="/assets/icons/google.svg"

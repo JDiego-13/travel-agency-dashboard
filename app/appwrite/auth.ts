@@ -1,18 +1,17 @@
 import { ID, OAuthProvider, Query } from "appwrite";
 import { account, database, appwriteConfig } from "~/appwrite/client";
 import { redirect } from "react-router";
-import { access } from "fs";
 
 export const getExistingUser = async (id: string) => {
     try {
-        const {documents, total} = await database.listDocuments(
+        const { documents, total } = await database.listDocuments(
             appwriteConfig.databaseId,
             appwriteConfig.userCollectionId,
             [Query.equal("accountId", id)]
         );
         return total > 0 ? documents[0] : null;
     } catch (error) {
-        console.log("Error fetching user: ", error);
+        console.error("Error fetching user:", error);
         return null;
     }
 };
@@ -42,7 +41,7 @@ export const storeUserData = async () => {
 
         if (!createdUser.$id) redirect("/sign-in");
     } catch (error) {
-        console.error("Error storing user data: ", error);
+        console.error("Error storing user data:", error);
     }
 };
 
@@ -50,18 +49,19 @@ const getGooglePicture = async (accessToken: string) => {
     try {
         const response = await fetch(
             "https://people.googleapis.com/v1/people/me?personFields=photos",
-            {headers: {Authorization: `Bearer ${accessToken}`}}
+            { headers: { Authorization: `Bearer ${accessToken}` } }
         );
-        if (!response.ok) throw new Error("Field to fetch Google profile picture");
+        if (!response.ok) throw new Error("Failed to fetch Google profile picture");
 
         const { photos } = await response.json();
         return photos?.[0]?.url || null;
     } catch (error) {
-        console.error("Error fetching Google picture: ", error);
+        console.error("Error fetching Google picture:", error);
+        return null;
     }
 };
 
-export const loginWidthGoogle = async () => {
+export const loginWithGoogle = async () => {
     try {
         account.createOAuth2Session(
             OAuthProvider.Google,
@@ -69,14 +69,23 @@ export const loginWidthGoogle = async () => {
             `${window.location.origin}/404`
         );
     } catch (error) {
-        console.error("Error during OAuth2 session creation: ", error);
+        console.error("Error during OAuth2 session creation:", error);
+    }
+};
+
+export const logoutUser = async () => {
+    try {
+        await account.deleteSession("current");
+    } catch (error) {
+        console.error("Error during logout:", error);
     }
 };
 
 export const getUser = async () => {
     try {
         const user = await account.get();
-        if (!user) return redirect("/sign-in");
+
+        if (!user) return null;
 
         const { documents } = await database.listDocuments(
             appwriteConfig.databaseId,
@@ -87,9 +96,13 @@ export const getUser = async () => {
             ]
         );
 
-        return documents.length > 0 ? documents[0] : redirect("/sign-in");
-    } catch (error) {
-        console.error("Error fetching user: ", error);
+        return documents.length > 0 ? documents[0] : null;
+    } catch (error: any) {
+        if (error?.code === 401) {
+            return null;
+        }
+
+        console.error("Error fetching user:", error);
         return null;
     }
 };
@@ -102,11 +115,11 @@ export const getAllUsers = async (limit: number, offset: number) => {
             [Query.limit(limit), Query.offset(offset)]
         )
 
-        if(total === 0) return {users: [], total };
+        if(total === 0) return { users: [], total };
 
-        return {users, total };
+        return { users, total };
     } catch (e) {
         console.log('Error fetching users')
-        return { users: [], total: 0}
+        return { users: [], total: 0 }
     }
 }

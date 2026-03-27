@@ -39,11 +39,10 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
     const page = parseInt(url.searchParams.get('page') || "1", 10);
     const offset = (page - 1) * limit;
 
-    const [user, { allTrips, total } ] = await Promise.all([
-        getUser(),
-        getAllTrips(limit, offset),
-    ])
+    const { allTrips, total } = await getAllTrips(limit, offset);
 
+    
+    const user = await getUser();
     return {
         trips: allTrips.map(({ $id, tripDetails, imageUrls }) => ({
             id: $id,
