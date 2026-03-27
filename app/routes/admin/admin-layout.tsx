@@ -4,6 +4,11 @@ import {MobileSidebar, NavItems} from "../../../components";
 import {account} from "~/appwrite/client";
 import {getExistingUser, storeUserData} from "~/appwrite/auth";
 
+
+export async function loader() {
+    return null;
+}
+
 export async function clientLoader() {
     try {
         const user = await account.get();
